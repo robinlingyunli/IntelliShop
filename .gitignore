@@ -24,6 +24,9 @@ venv/
 .DS_Store
 Thumbs.db
 
+# Claude Code local config (not shared / not committed)
+.claude/
+
 # Logs
 *.log
 logs/
