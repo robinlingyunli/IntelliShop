@@ -2,8 +2,13 @@ from fastapi import FastAPI
 from sqlalchemy import text
 
 from database import engine
+from routers import auth, cart, orders, products
 
 app = FastAPI(title="IntelliShop API")
+app.include_router(auth.router)
+app.include_router(products.router)
+app.include_router(cart.router)
+app.include_router(orders.router)
 
 
 @app.get("/health")
