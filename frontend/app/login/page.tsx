@@ -30,8 +30,8 @@ export default function LoginPage() {
         method: "POST",
         body: JSON.stringify({ username, password }),
       });
-      login(data.access_token);
-      router.push("/");
+      const loggedInUser = await login(data.access_token);
+      router.push(loggedInUser?.role === "seller" ? "/seller" : "/");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Login failed");
     } finally {

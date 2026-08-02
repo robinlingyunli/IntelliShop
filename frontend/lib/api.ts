@@ -52,3 +52,28 @@ export async function apiFetch<T>(
 
   return res.json() as Promise<T>;
 }
+
+export async function uploadProductImage(file: File): Promise<{ image_path: string }> {
+  const token = getToken();
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch(`${API_BASE_URL}/products/upload-image`, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
+
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      const data = await res.json();
+      detail = data.detail || detail;
+    } catch {
+      // response body wasn't JSON, fall back to statusText
+    }
+    throw new ApiError(res.status, detail);
+  }
+
+  return res.json();
+}

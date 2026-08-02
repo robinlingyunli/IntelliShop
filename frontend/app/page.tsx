@@ -1,31 +1,132 @@
-import ProductCard from "@/components/ProductCard";
+"use client";
+
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { FaBoxOpen, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+
+import { apiFetch } from "@/lib/api";
 import type { Product } from "@/lib/types";
 
-async function getProducts(): Promise<Product[]> {
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-  const res = await fetch(`${API_BASE_URL}/products`, { cache: "no-store" });
-  if (!res.ok) return [];
-  return res.json();
+interface Highlight {
+  title: string;
+  description: string;
+  href: string;
+  match: (p: Product) => boolean;
 }
 
-export default async function Home() {
-  const products = await getProducts();
+// Hand-picked homepage highlights. Update this list as the catalog's categories grow.
+const HIGHLIGHTS: Highlight[] = [
+  {
+    title: "Big Savings",
+    description: "Don't miss out — shop our best discounts across the store.",
+    href: "/shop?discount=true",
+    match: (p) => p.discount_percentage != null,
+  },
+  {
+    title: "Toys for Little Ones",
+    description: "Fun and playful picks for kids of all ages.",
+    href: "/shop?category=toy",
+    match: (p) => p.category === "toy",
+  },
+  {
+    title: "Kitchen Essentials",
+    description: "Everything you need to stock your kitchen.",
+    href: "/shop?category=bowl",
+    match: (p) => p.category === "bowl",
+  },
+];
+
+export default function Home() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    apiFetch<Product[]>("/products")
+      .then(setProducts)
+      .catch(() => setProducts([]));
+  }, []);
+
+  const slides = useMemo(
+    () =>
+      HIGHLIGHTS.map((highlight) => ({
+        ...highlight,
+        image: products.find(highlight.match)?.image_path ?? null,
+      })),
+    [products],
+  );
+
+  const current = slides[index] ?? slides[0];
+
+  const goPrev = () => setIndex((i) => (i - 1 + slides.length) % slides.length);
+  const goNext = () => setIndex((i) => (i + 1) % slides.length);
+
+  if (!current) {
+    return (
+      <main className="mx-auto flex w-full max-w-5xl flex-1 items-center justify-center px-4 py-8">
+        <p className="text-zinc-400">Home page coming soon.</p>
+      </main>
+    );
+  }
 
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
-      <h1 className="mb-6 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-        Shop
-      </h1>
+    <main className="flex-1">
+      <section className="relative min-h-[500px] w-full overflow-hidden bg-gradient-to-br from-zinc-100 via-zinc-50 to-white dark:from-zinc-900 dark:via-zinc-950 dark:to-black">
+        {slides.map((slide, i) => (
+          <div
+            key={slide.title}
+            className={`absolute inset-0 flex items-center transition-opacity duration-700 ease-linear ${
+              i === index ? "z-10 opacity-100" : "pointer-events-none z-0 opacity-0"
+            }`}
+          >
+            <div className="mx-auto flex w-full max-w-7xl items-center gap-10 px-6 py-16 sm:px-10 md:py-24">
+              <div className="flex-1">
+                <h1 className="text-4xl font-bold text-zinc-900 sm:text-5xl dark:text-zinc-50">
+                  {slide.title}
+                </h1>
+                <p className="mt-5 max-w-md text-lg text-zinc-600 dark:text-zinc-400">
+                  {slide.description}
+                </p>
+                <Link
+                  href={slide.href}
+                  className="mt-8 inline-block rounded-full bg-zinc-900 px-8 py-4 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+                >
+                  Shop now
+                </Link>
+              </div>
 
-      {products.length === 0 ? (
-        <p className="text-zinc-500">No products yet.</p>
-      ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      )}
+              <div className="hidden flex-1 items-center justify-center md:flex">
+                <div className="flex aspect-square w-full max-w-md items-center justify-center overflow-hidden rounded-3xl bg-white/70 shadow-inner dark:bg-zinc-800/50">
+                  {slide.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={slide.image}
+                      alt={slide.title}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <FaBoxOpen className="text-6xl text-zinc-300 dark:text-zinc-700" />
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        <button
+          onClick={goPrev}
+          aria-label="Previous"
+          className="absolute left-4 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white text-zinc-700 shadow transition-colors hover:bg-zinc-100 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+        >
+          <FaChevronLeft />
+        </button>
+        <button
+          onClick={goNext}
+          aria-label="Next"
+          className="absolute right-4 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white text-zinc-700 shadow transition-colors hover:bg-zinc-100 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+        >
+          <FaChevronRight />
+        </button>
+      </section>
     </main>
   );
 }

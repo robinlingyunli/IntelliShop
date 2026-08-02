@@ -18,6 +18,7 @@ export default function RegisterPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState<"user" | "seller">("user");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -34,15 +35,15 @@ export default function RegisterPage() {
     try {
       await apiFetch("/auth/register", {
         method: "POST",
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, role }),
       });
 
       const loginData = await apiFetch<LoginResponse>("/auth/login", {
         method: "POST",
         body: JSON.stringify({ username, password }),
       });
-      login(loginData.access_token);
-      router.push("/");
+      await login(loginData.access_token);
+      router.push(role === "seller" ? "/seller" : "/");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Registration failed");
     } finally {
@@ -122,6 +123,36 @@ export default function RegisterPage() {
               className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-zinc-100"
               placeholder="Re-enter your password"
             />
+          </div>
+
+          <div>
+            <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              Account type
+            </span>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setRole("user")}
+                className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                  role === "user"
+                    ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900"
+                    : "border-zinc-300 text-zinc-600 dark:border-zinc-700 dark:text-zinc-400"
+                }`}
+              >
+                Buyer
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole("seller")}
+                className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                  role === "seller"
+                    ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900"
+                    : "border-zinc-300 text-zinc-600 dark:border-zinc-700 dark:text-zinc-400"
+                }`}
+              >
+                Seller
+              </button>
+            </div>
           </div>
 
           <button

@@ -1,12 +1,14 @@
 from datetime import datetime
 from decimal import Decimal
+from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class UserCreate(BaseModel):
     username: str
     password: str
+    role: Literal["user", "seller"] = "user"
 
 
 class UserOut(BaseModel):
@@ -14,6 +16,7 @@ class UserOut(BaseModel):
 
     id: int
     username: str
+    role: str
     created_at: datetime
 
 
@@ -46,9 +49,11 @@ class ProductOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    owner_id: int | None
     name: str
     category: str
     price: Decimal
+    discount_percentage: int | None
     stock: int
     description: str | None
     image_path: str | None
@@ -94,3 +99,61 @@ class OrderOut(BaseModel):
     created_at: datetime
     updated_at: datetime
     items: list[OrderItemOut]
+
+
+class OrderStatusUpdate(BaseModel):
+    status: Literal["pending", "paid", "shipped", "delivered", "cancelled"]
+
+
+class SellerOrderItemOut(BaseModel):
+    id: int
+    quantity: int
+    unit_price: Decimal
+    product: ProductOut
+    order_id: int
+    order_status: str
+    order_created_at: datetime
+    buyer_username: str
+
+
+class PromotionItemInput(BaseModel):
+    product_id: int
+    discount_percentage: int = Field(ge=5, le=95, multiple_of=5)
+
+
+class PromotionCreate(BaseModel):
+    title: str
+    image_path: str | None = None
+    start_date: datetime
+    end_date: datetime
+    items: list[PromotionItemInput]
+
+
+class PromotionUpdate(BaseModel):
+    title: str | None = None
+    image_path: str | None = None
+    start_date: datetime | None = None
+    end_date: datetime | None = None
+    items: list[PromotionItemInput] | None = None
+
+
+class PromotionItemOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    product_id: int
+    discount_percentage: int
+    product: ProductOut
+
+
+class PromotionOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    title: str
+    image_path: str | None
+    start_date: datetime
+    end_date: datetime
+    created_at: datetime
+    updated_at: datetime
+    items: list[PromotionItemOut]

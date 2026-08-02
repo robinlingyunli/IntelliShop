@@ -5,10 +5,13 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { ApiError, apiFetch, getToken } from "@/lib/api";
+import { useCart } from "@/lib/cart-context";
+import { getEffectivePrice } from "@/lib/pricing";
 import type { CartItem } from "@/lib/types";
 
 export default function CartPage() {
   const router = useRouter();
+  const { refreshCart } = useCart();
   const [items, setItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,6 +57,7 @@ export default function CartPage() {
     try {
       await apiFetch(`/cart/${itemId}`, { method: "DELETE" });
       setItems((prev) => prev.filter((item) => item.id !== itemId));
+      await refreshCart();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to remove item");
     }
@@ -64,6 +68,7 @@ export default function CartPage() {
     setError(null);
     try {
       await apiFetch("/orders", { method: "POST" });
+      await refreshCart();
       router.push("/orders");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Checkout failed");
@@ -72,7 +77,7 @@ export default function CartPage() {
   };
 
   const total = items.reduce(
-    (sum, item) => sum + Number(item.product.price) * item.quantity,
+    (sum, item) => sum + getEffectivePrice(item.product) * item.quantity,
     0,
   );
 
@@ -106,7 +111,11 @@ export default function CartPage() {
       ) : (
         <>
           <div className="space-y-3">
-            {items.map((item) => (
+            {items.map((item) => {
+              const effectivePrice = getEffectivePrice(item.product);
+              const hasDiscount = item.product.discount_percentage != null;
+
+              return (
               <div
                 key={item.id}
                 className="flex items-center gap-4 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
@@ -128,12 +137,23 @@ export default function CartPage() {
                   <p className="font-medium text-zinc-900 dark:text-zinc-100">
                     {item.product.name}
                   </p>
-                  <p className="text-sm text-zinc-500">${item.product.price} each</p>
+                  <p className="text-sm text-zinc-500">
+                    {hasDiscount && (
+                      <span className="mr-1 text-zinc-400 line-through">
+                        ${item.product.price}
+                      </span>
+                    )}
+                    ${effectivePrice.toFixed(2)} each
+                  </p>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                    onClick={() =>
+                      item.quantity <= 1
+                        ? removeItem(item.id)
+                        : updateQuantity(item.id, item.quantity - 1)
+                    }
                     className="h-7 w-7 rounded-full border border-zinc-300 text-sm dark:border-zinc-700"
                   >
                     -
@@ -148,7 +168,7 @@ export default function CartPage() {
                 </div>
 
                 <p className="w-16 text-right text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                  ${(Number(item.product.price) * item.quantity).toFixed(2)}
+                  ${(effectivePrice * item.quantity).toFixed(2)}
                 </p>
 
                 <button
@@ -158,7 +178,8 @@ export default function CartPage() {
                   Remove
                 </button>
               </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="mt-6 flex items-center justify-between border-t border-zinc-200 pt-4 dark:border-zinc-800">

@@ -2,35 +2,61 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
-import { clearToken, getToken, setToken as saveToken } from "@/lib/api";
+import { apiFetch, clearToken, getToken, setToken as saveToken } from "@/lib/api";
+import type { User } from "@/lib/types";
 
 interface AuthContextValue {
+  user: User | null;
   isLoggedIn: boolean;
-  login: (token: string) => void;
+  isLoading: boolean;
+  login: (token: string) => Promise<User | null>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const loadUser = async (): Promise<User | null> => {
+    if (!getToken()) {
+      setUser(null);
+      setIsLoading(false);
+      return null;
+    }
+    try {
+      const data = await apiFetch<User>("/auth/me");
+      setUser(data);
+      return data;
+    } catch {
+      clearToken();
+      setUser(null);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    setIsLoggedIn(Boolean(getToken()));
+    loadUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const login = (token: string) => {
+  const login = async (token: string) => {
     saveToken(token);
-    setIsLoggedIn(true);
+    return loadUser();
   };
 
   const logout = () => {
     clearToken();
-    setIsLoggedIn(false);
+    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, isLoggedIn: Boolean(user), isLoading, login, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );
