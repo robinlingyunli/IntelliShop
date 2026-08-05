@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 
 from database import engine
-from routers import auth, cart, orders, products, promotions
+from routers import ai, auth, cart, orders, products, promotions
 
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
@@ -25,6 +25,7 @@ app.include_router(products.router)
 app.include_router(cart.router)
 app.include_router(orders.router)
 app.include_router(promotions.router)
+app.include_router(ai.router)
 
 
 @app.get("/health")

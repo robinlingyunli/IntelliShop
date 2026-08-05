@@ -62,6 +62,10 @@ export interface Promotion {
   items: PromotionItem[];
 }
 
+export interface AiProduct extends Product {
+  effective_price: number;
+}
+
 export interface SellerOrderItem {
   id: number;
   quantity: number;

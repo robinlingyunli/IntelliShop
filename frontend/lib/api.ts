@@ -53,6 +53,33 @@ export async function apiFetch<T>(
   return res.json() as Promise<T>;
 }
 
+export async function streamChat(
+  messages: { role: string; content: string }[],
+): Promise<Response> {
+  const token = getToken();
+  const res = await fetch(`${API_BASE_URL}/ai/chat`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ messages }),
+  });
+
+  if (!res.ok || !res.body) {
+    let detail = res.statusText;
+    try {
+      const data = await res.json();
+      detail = data.detail || detail;
+    } catch {
+      // response body wasn't JSON, fall back to statusText
+    }
+    throw new ApiError(res.status, detail);
+  }
+
+  return res;
+}
+
 export async function uploadProductImage(file: File): Promise<{ image_path: string }> {
   const token = getToken();
   const formData = new FormData();
