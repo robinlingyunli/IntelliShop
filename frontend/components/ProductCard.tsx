@@ -7,6 +7,7 @@ import { FaMinus, FaPlus } from "react-icons/fa";
 
 import { ApiError, apiFetch, getToken } from "@/lib/api";
 import { useCart } from "@/lib/cart-context";
+import { notoSans } from "@/lib/fonts";
 import { getEffectivePrice } from "@/lib/pricing";
 import type { Product } from "@/lib/types";
 
@@ -82,8 +83,10 @@ export default function ProductCard({ product }: { product: Product }) {
   };
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-      <div className="group relative flex h-56 items-center justify-center overflow-hidden bg-zinc-100 text-zinc-400 dark:bg-zinc-900">
+    <div
+      className={`${notoSans.className} flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950`}
+    >
+      <div className="group relative flex h-52 items-center justify-center overflow-hidden border-b border-zinc-300 bg-white text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900">
         {hasDiscount && (
           <span className="absolute left-2 top-2 z-10 rounded bg-zinc-900 px-2 py-1 text-xs font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">
             -{discountPercent}%
@@ -94,7 +97,7 @@ export default function ProductCard({ product }: { product: Product }) {
           <img
             src={product.image_path}
             alt={product.name}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <span className="text-sm">No image</span>
@@ -116,7 +119,7 @@ export default function ProductCard({ product }: { product: Product }) {
         href={`/product/${product.id}`}
         className="flex flex-col items-center gap-1 p-3 pb-0 text-center"
       >
-        <h3 className="font-medium text-zinc-900 dark:text-zinc-100">{product.name}</h3>
+        <h3 className="font-normal text-zinc-900 dark:text-zinc-100">{product.name}</h3>
         {hasDiscount ? (
           <p className="flex items-center gap-2">
             <span className="text-sm text-zinc-400 line-through">${product.price}</span>
@@ -156,7 +159,7 @@ export default function ProductCard({ product }: { product: Product }) {
           <button
             onClick={handleAddToCart}
             disabled={isUpdating || product.stock === 0}
-            className="mt-auto w-full border border-zinc-900 py-2.5 text-xs font-medium uppercase tracking-wide text-zinc-900 transition-colors duration-200 hover:bg-zinc-900 hover:text-white disabled:opacity-50 dark:border-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-100 dark:hover:text-zinc-900"
+            className="mt-auto w-full border border-zinc-200 py-2.5 text-xs font-normal uppercase tracking-wide text-zinc-900 shadow-sm transition-colors duration-200 hover:bg-zinc-900 hover:text-white disabled:opacity-50 dark:border-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-100 dark:hover:text-zinc-900"
           >
             {isUpdating ? "Adding..." : "Add to cart"}
           </button>

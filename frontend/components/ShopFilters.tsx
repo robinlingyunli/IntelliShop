@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { FaStar } from "react-icons/fa";
 
 export interface ShopFilterState {
   search: string;
@@ -153,34 +152,6 @@ export default function ShopFilters({
           />
           <span className="ml-3 text-zinc-700 dark:text-zinc-300">Deals & Discounts</span>
         </label>
-      </div>
-
-      {/* Customer Rating — UI only for now, no backing rating data yet */}
-      <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-        <h3 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-          Customer Rating
-        </h3>
-        <div className="space-y-3">
-          {[5, 4, 3, 2, 1].map((rating) => (
-            <label key={rating} className="group flex cursor-pointer items-center">
-              <input
-                type="checkbox"
-                className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 dark:border-zinc-600"
-              />
-              <div className="ml-3 flex items-center">
-                <div className="flex text-yellow-400">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <FaStar
-                      key={i}
-                      className={i < rating ? "text-yellow-400" : "text-zinc-300 dark:text-zinc-700"}
-                    />
-                  ))}
-                </div>
-                <span className="ml-2 text-sm text-zinc-500">&amp; up</span>
-              </div>
-            </label>
-          ))}
-        </div>
       </div>
 
       {/* Clear Filters */}

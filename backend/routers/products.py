@@ -2,12 +2,12 @@ import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import get_current_user
 from database import get_db
-from models import Product, User
+from models import OrderItem, Product, User
 from schemas import ProductCreate, ProductOut, ProductUpdate
 
 router = APIRouter(prefix="/products", tags=["products"])
@@ -56,6 +56,18 @@ async def upload_product_image(
 
     image_path = f"{str(request.base_url).rstrip('/')}/uploads/{filename}"
     return {"image_path": image_path}
+
+
+@router.get("/bestsellers", response_model=list[ProductOut])
+async def list_bestsellers(limit: int = 3, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(Product)
+        .join(OrderItem, OrderItem.product_id == Product.id)
+        .group_by(Product.id)
+        .order_by(func.sum(OrderItem.quantity).desc())
+        .limit(limit)
+    )
+    return result.scalars().all()
 
 
 @router.get("/{product_id}", response_model=ProductOut)

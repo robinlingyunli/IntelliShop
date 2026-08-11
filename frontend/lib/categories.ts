@@ -1,0 +1,18 @@
+export const PRODUCT_CATEGORIES = [
+  "Electronics",
+  "Clothing & Apparel",
+  "Shoes",
+  "Toys & Games",
+  "Home & Kitchen",
+  "Furniture",
+  "Beauty & Personal Care",
+  "Health & Household",
+  "Sports & Outdoors",
+  "Books",
+  "Baby Products",
+  "Pet Supplies",
+  "Jewelry & Accessories",
+  "Automotive",
+  "Office Supplies",
+  "Garden & Outdoor",
+] as const;

@@ -139,7 +139,7 @@ export default function RegisterPage() {
                     : "border-zinc-300 text-zinc-600 dark:border-zinc-700 dark:text-zinc-400"
                 }`}
               >
-                Buyer
+                Customer
               </button>
               <button
                 type="button"
@@ -150,7 +150,7 @@ export default function RegisterPage() {
                     : "border-zinc-300 text-zinc-600 dark:border-zinc-700 dark:text-zinc-400"
                 }`}
               >
-                Seller
+                Merchant
               </button>
             </div>
           </div>

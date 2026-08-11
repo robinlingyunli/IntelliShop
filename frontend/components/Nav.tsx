@@ -3,17 +3,19 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { FaUserAlt } from "react-icons/fa";
+import { FaHeart, FaUserAlt } from "react-icons/fa";
 import { IoMdCart } from "react-icons/io";
 
 import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
+import { useWishlist } from "@/lib/wishlist-context";
 import SearchBox from "@/components/SearchBox";
 
 export default function Nav() {
   const router = useRouter();
   const { user, isLoggedIn, logout } = useAuth();
   const { itemCount } = useCart();
+  const { itemCount: wishlistCount } = useWishlist();
   const [menuOpen, setMenuOpen] = useState(false);
   const isSeller = isLoggedIn && user?.role === "seller";
 
@@ -32,13 +34,13 @@ export default function Nav() {
   };
 
   return (
-    <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-black/80">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
+    <header className="sticky top-0 z-40 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-black/80">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-5">
         <Link
           href="/"
           className="flex-shrink-0 text-lg font-semibold tracking-wide text-zinc-900 dark:text-zinc-50"
         >
-          IntelliShop
+          INTELLISHOP
         </Link>
 
         {!isSeller && <SearchBox />}
@@ -59,6 +61,18 @@ export default function Nav() {
               </Link>
               <Link href="/orders" className="hover:text-zinc-900 dark:hover:text-zinc-100">
                 ORDERS
+              </Link>
+
+              <Link
+                href="/wishlist"
+                className="relative text-xl text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+              >
+                <FaHeart />
+                {wishlistCount > 0 && (
+                  <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-medium text-white dark:bg-zinc-100 dark:text-zinc-900">
+                    {wishlistCount}
+                  </span>
+                )}
               </Link>
 
               <Link

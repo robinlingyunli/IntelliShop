@@ -5,6 +5,7 @@ import { FaBox, FaEdit, FaPlus, FaSearch, FaTimes, FaTrash } from "react-icons/f
 import { IoMdCloudUpload } from "react-icons/io";
 
 import { ApiError, apiFetch, uploadProductImage } from "@/lib/api";
+import { PRODUCT_CATEGORIES } from "@/lib/categories";
 import type { Product } from "@/lib/types";
 
 interface ProductFormState {
@@ -311,10 +312,7 @@ export default function SellerProductsPage() {
       )}
 
       {showModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          onClick={(e) => e.target === e.currentTarget && closeModal()}
-        >
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white dark:bg-zinc-950">
             <div className="flex items-center justify-between border-b border-zinc-200 p-5 dark:border-zinc-800">
               <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
@@ -336,13 +334,21 @@ export default function SellerProductsPage() {
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 className="col-span-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
               />
-              <input
+              <select
                 required
-                placeholder="Category"
                 value={form.category}
                 onChange={(e) => setForm({ ...form, category: e.target.value })}
                 className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
-              />
+              >
+                <option value="" disabled>
+                  Select a category
+                </option>
+                {PRODUCT_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
               <div className="col-span-full">
                 <label htmlFor="product-image" className="block cursor-pointer">
                   <div className="flex min-h-[140px] flex-col items-center justify-center rounded-lg border-2 border-dashed border-zinc-300 p-4 transition-colors hover:border-zinc-400 dark:border-zinc-700 dark:hover:border-zinc-600">

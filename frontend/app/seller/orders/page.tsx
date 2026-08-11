@@ -148,7 +148,7 @@ export default function SellerOrdersPage() {
           <FaSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
           <input
             type="text"
-            placeholder="Search by order #, product, or buyer..."
+            placeholder="Search by order #, product, or customer..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full rounded-lg border border-zinc-300 py-2 pl-9 pr-3 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
@@ -186,7 +186,7 @@ export default function SellerOrdersPage() {
               <tr>
                 <th className="px-4 py-3">Order</th>
                 <th className="px-4 py-3">Product</th>
-                <th className="px-4 py-3">Buyer</th>
+                <th className="px-4 py-3">Customer</th>
                 <th className="px-4 py-3">Date</th>
                 <th className="px-4 py-3">Qty</th>
                 <th className="px-4 py-3">Amount</th>

@@ -5,6 +5,8 @@ import AiChat from "@/components/AiChat";
 import Nav from "@/components/Nav";
 import { AuthProvider } from "@/lib/auth-context";
 import { CartProvider } from "@/lib/cart-context";
+import { WishlistProvider } from "@/lib/wishlist-context";
+import { notoSans } from "@/lib/fonts";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,14 +31,16 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${notoSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <AuthProvider>
           <CartProvider>
-            <Nav />
-            {children}
-            <AiChat />
+            <WishlistProvider>
+              <Nav />
+              {children}
+              <AiChat />
+            </WishlistProvider>
           </CartProvider>
         </AuthProvider>
       </body>

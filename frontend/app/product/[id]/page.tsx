@@ -1,19 +1,21 @@
 "use client";
 
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
 
 import ProductCard from "@/components/ProductCard";
 import { ApiError, apiFetch, getToken } from "@/lib/api";
 import { useCart } from "@/lib/cart-context";
 import { getEffectivePrice } from "@/lib/pricing";
+import { useWishlist } from "@/lib/wishlist-context";
 import type { Product } from "@/lib/types";
 
 export default function ProductPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const { refreshCart } = useCart();
+  const { isWishlisted, refreshWishlist } = useWishlist();
   const id = params.id;
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -21,9 +23,9 @@ export default function ProductPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState<"description" | "reviews">("description");
   const [cartStatus, setCartStatus] = useState<"idle" | "loading" | "added" | "error">("idle");
   const [cartError, setCartError] = useState<string | null>(null);
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -73,6 +75,29 @@ export default function ProductPage() {
     }
   };
 
+  const handleToggleWishlist = async () => {
+    if (!getToken()) {
+      router.push("/login");
+      return;
+    }
+    if (!product) return;
+
+    setIsWishlistLoading(true);
+    try {
+      if (isWishlisted(product.id)) {
+        await apiFetch(`/wishlist/${product.id}`, { method: "DELETE" });
+      } else {
+        await apiFetch("/wishlist", {
+          method: "POST",
+          body: JSON.stringify({ product_id: product.id }),
+        });
+      }
+      await refreshWishlist();
+    } finally {
+      setIsWishlistLoading(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
@@ -94,17 +119,6 @@ export default function ProductPage() {
 
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
-      {/* Breadcrumbs */}
-      <div className="mb-8 flex items-center gap-2 text-sm text-zinc-500">
-        <Link href="/shop" className="hover:text-zinc-900 dark:hover:text-zinc-100">
-          Shop
-        </Link>
-        <span>/</span>
-        <span className="capitalize">{product.category}</span>
-        <span>/</span>
-        <span className="text-zinc-900 dark:text-zinc-100">{product.name}</span>
-      </div>
-
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
         {/* Image */}
         <div className="aspect-square overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-900">
@@ -182,6 +196,22 @@ export default function ProductPage() {
                   : "Add to Cart"}
             </button>
             {cartError && <p className="text-sm text-red-500">{cartError}</p>}
+
+            <button
+              onClick={handleToggleWishlist}
+              disabled={isWishlistLoading}
+              className="flex w-full items-center justify-center gap-2 rounded-full border border-zinc-300 py-3 text-sm font-medium uppercase tracking-wider text-zinc-700 transition-colors hover:border-zinc-900 hover:text-zinc-900 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-zinc-100 dark:hover:text-zinc-100"
+            >
+              {isWishlisted(product.id) ? (
+                <>
+                  <FaHeart className="text-red-500" /> Remove from Wishlist
+                </>
+              ) : (
+                <>
+                  <FaRegHeart /> Add to Wishlist
+                </>
+              )}
+            </button>
           </div>
 
           <div className="space-y-1 border-t border-zinc-200 pt-4 text-sm dark:border-zinc-800">
@@ -195,31 +225,14 @@ export default function ProductPage() {
         </div>
       </div>
 
-      {/* Tabs: Description / Reviews */}
+      {/* Description */}
       <div className="mt-16 border-t border-zinc-200 pt-10 dark:border-zinc-800">
-        <div className="mb-6 flex gap-8 border-b border-zinc-200 dark:border-zinc-800">
-          {(["description", "reviews"] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`pb-3 text-sm font-medium uppercase tracking-wider transition-colors ${
-                activeTab === tab
-                  ? "border-b-2 border-zinc-900 text-zinc-900 dark:border-zinc-100 dark:text-zinc-100"
-                  : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
-              }`}
-            >
-              {tab === "reviews" ? "Reviews (0)" : "Description"}
-            </button>
-          ))}
-        </div>
-
-        {activeTab === "description" ? (
-          <p className="text-zinc-600 dark:text-zinc-400">
-            {product.description || "No description available."}
-          </p>
-        ) : (
-          <p className="text-zinc-500">No reviews yet. Be the first to leave a review!</p>
-        )}
+        <h2 className="mb-6 text-sm font-medium uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
+          Description
+        </h2>
+        <p className="text-zinc-600 dark:text-zinc-400">
+          {product.description || "No description available."}
+        </p>
       </div>
 
       {/* Related Products */}

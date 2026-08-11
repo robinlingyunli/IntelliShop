@@ -7,7 +7,7 @@ import { useEffect, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth-context";
 
 const navItems = [
-  { href: "/seller", label: "Seller Info" },
+  { href: "/seller", label: "Merchant Info" },
   { href: "/seller/products", label: "Products" },
   { href: "/seller/orders", label: "Orders" },
   { href: "/seller/promotions", label: "Promotions" },

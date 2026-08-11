@@ -27,6 +27,13 @@ export interface CartItem {
   product: Product;
 }
 
+export interface WishlistItem {
+  id: number;
+  product_id: number;
+  created_at: string;
+  product: Product;
+}
+
 export interface OrderItem {
   id: number;
   product_id: number;

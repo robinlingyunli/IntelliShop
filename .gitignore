@@ -35,4 +35,8 @@ logs/
 *.db
 *.sqlite3
 
+# User-uploaded product images (local dev storage)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
 # Alembic (keep migration scripts, ignore nothing extra here)
