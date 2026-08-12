@@ -1,7 +1,9 @@
 import json
 import os
+from datetime import date
 from typing import Literal
 
+import anthropic
 from anthropic import AsyncAnthropic
 from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException
@@ -22,6 +24,11 @@ client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 MODEL = os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001")
 
 router = APIRouter(prefix="/ai", tags=["ai"])
+
+DAILY_MESSAGE_LIMIT = 10
+MAX_TOOL_LOOPS = 5
+MAX_MESSAGES_PER_REQUEST = 40
+MAX_CONVERSATION_CHARS = 20000
 
 SYSTEM_PROMPT = """You are a helpful shopping assistant for IntelliShop, an online retail shop.
 
@@ -135,22 +142,57 @@ async def chat(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    if len(payload.messages) > MAX_MESSAGES_PER_REQUEST:
+        raise HTTPException(
+            status_code=413,
+            detail="This conversation has gotten too long. Please start a new chat.",
+        )
+
+    total_chars = sum(len(m.content) for m in payload.messages)
+    if total_chars > MAX_CONVERSATION_CHARS:
+        raise HTTPException(
+            status_code=413,
+            detail="This conversation has gotten too long. Please start a new chat.",
+        )
+
+    today = date.today()
+    if current_user.ai_usage_date != today:
+        current_user.ai_usage_date = today
+        current_user.ai_message_count = 0
+
+    if current_user.ai_message_count >= DAILY_MESSAGE_LIMIT:
+        raise HTTPException(
+            status_code=429,
+            detail=f"You've reached today's limit of {DAILY_MESSAGE_LIMIT} AI messages. Please try again tomorrow.",
+        )
+
+    current_user.ai_message_count += 1
+    await db.commit()
+
     async def event_stream():
         messages = [{"role": m.role, "content": m.content} for m in payload.messages]
         last_products: list[dict] = []
 
-        while True:
-            async with client.messages.stream(
-                model=MODEL,
-                max_tokens=1024,
-                system=SYSTEM_PROMPT,
-                tools=TOOLS,
-                messages=messages,
-            ) as stream:
-                async for event in stream:
-                    if event.type == "text":
-                        yield _sse("token", text=event.text)
-                response = await stream.get_final_message()
+        for _ in range(MAX_TOOL_LOOPS):
+            try:
+                async with client.messages.stream(
+                    model=MODEL,
+                    max_tokens=1024,
+                    system=SYSTEM_PROMPT,
+                    tools=TOOLS,
+                    messages=messages,
+                ) as stream:
+                    async for event in stream:
+                        if event.type == "text":
+                            yield _sse("token", text=event.text)
+                    response = await stream.get_final_message()
+            except anthropic.APIError:
+                yield _sse(
+                    "token",
+                    text="AI assistant is temporarily unavailable. Please contact the administrator.",
+                )
+                yield _sse("done", products=last_products)
+                return
 
             if response.stop_reason != "tool_use":
                 yield _sse("done", products=last_products)
@@ -176,5 +218,11 @@ async def chat(
                 )
 
             messages.append({"role": "user", "content": tool_result_blocks})
+
+        yield _sse(
+            "token",
+            text="This request is taking too many steps to complete. Please try rephrasing your question.",
+        )
+        yield _sse("done", products=last_products)
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")

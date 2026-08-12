@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Optional
 
@@ -18,6 +18,8 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[str] = mapped_column(String(20), default="user")
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    ai_message_count: Mapped[int] = mapped_column(default=0)
+    ai_usage_date: Mapped[date | None] = mapped_column(nullable=True)
 
 
 class Product(Base):
