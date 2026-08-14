@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AiChat from "@/components/AiChat";
+import Footer from "@/components/Footer";
 import Nav from "@/components/Nav";
 import { AuthProvider } from "@/lib/auth-context";
 import { CartProvider } from "@/lib/cart-context";
@@ -39,6 +40,7 @@ export default function RootLayout({
             <WishlistProvider>
               <Nav />
               {children}
+              <Footer />
               <AiChat />
             </WishlistProvider>
           </CartProvider>

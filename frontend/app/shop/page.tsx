@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
 
 import ProductCard from "@/components/ProductCard";
 import ShopFilters, { type ShopFilterState } from "@/components/ShopFilters";
@@ -10,7 +11,8 @@ import type { Product } from "@/lib/types";
 
 type SortOption = "newest" | "price-low" | "price-high" | "name";
 
-export default function ShopPage() {
+function ShopPageContent() {
+  const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState<ShopFilterState>({
@@ -24,9 +26,8 @@ export default function ShopPage() {
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const category = params.get("category");
-    const discount = params.get("discount");
+    const category = searchParams.get("category");
+    const discount = searchParams.get("discount");
     if (category || discount) {
       setFilters((prev) => ({
         ...prev,
@@ -34,7 +35,7 @@ export default function ShopPage() {
         discountOnly: discount === "true" ? true : prev.discountOnly,
       }));
     }
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     const load = async () => {
@@ -109,6 +110,10 @@ export default function ShopPage() {
   useEffect(() => {
     setCurrentPage(1);
   }, [filters, sortBy, itemsPerPage]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [currentPage]);
 
   const totalPages = Math.max(1, Math.ceil(sortedProducts.length / itemsPerPage));
   const startItem = sortedProducts.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
@@ -218,5 +223,19 @@ export default function ShopPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function ShopPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="mx-auto flex w-full max-w-7xl flex-1 items-center justify-center px-4 py-8">
+          <p className="text-zinc-500">Loading...</p>
+        </main>
+      }
+    >
+      <ShopPageContent />
+    </Suspense>
   );
 }

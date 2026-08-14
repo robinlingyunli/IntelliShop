@@ -143,7 +143,7 @@ export default function Home() {
         </button>
       </section>
 
-      <div className="flex justify-center py-16">
+      <div className="flex justify-center pb-4 pt-16">
         <Link
           href="/shop"
           className="group flex items-center gap-2 text-2xl text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"

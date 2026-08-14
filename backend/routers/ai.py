@@ -28,7 +28,8 @@ router = APIRouter(prefix="/ai", tags=["ai"])
 DAILY_MESSAGE_LIMIT = 10
 MAX_TOOL_LOOPS = 5
 MAX_MESSAGES_PER_REQUEST = 40
-MAX_CONVERSATION_CHARS = 20000
+MAX_MESSAGE_CHARS = 500
+MAX_CONVERSATION_CHARS = 4000
 
 SYSTEM_PROMPT = """You are a helpful shopping assistant for IntelliShop, an online retail shop.
 
@@ -146,6 +147,12 @@ async def chat(
         raise HTTPException(
             status_code=413,
             detail="This conversation has gotten too long. Please start a new chat.",
+        )
+
+    if any(len(m.content) > MAX_MESSAGE_CHARS for m in payload.messages):
+        raise HTTPException(
+            status_code=413,
+            detail=f"Please keep messages under {MAX_MESSAGE_CHARS} characters.",
         )
 
     total_chars = sum(len(m.content) for m in payload.messages)
