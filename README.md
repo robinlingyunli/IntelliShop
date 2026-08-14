@@ -1,6 +1,6 @@
 # IntelliShop
 
-A full-stack e-commerce platform with a multi-vendor marketplace and a Claude-powered AI shopping assistant. Built as a learning project to practice a modern Next.js + FastAPI stack end to end.
+A full-stack e-commerce platform with a multi-vendor marketplace — built end to end with Next.js, FastAPI, and a Claude-powered AI shopping assistant featuring real tool-calling, streaming responses, and production-style safeguards (rate limiting, cost controls).
 
 ## Features
 
